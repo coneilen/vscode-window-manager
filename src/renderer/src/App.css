@@ -112,3 +112,31 @@ body {
 .window-list::-webkit-scrollbar-thumb:hover {
   background: #555555;
 }
+
+/* Update banner */
+.update-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #2d2d30;
+  border-top: 1px solid #3e3e42;
+  font-size: 12px;
+  color: #cccccc;
+}
+
+.update-btn {
+  margin-left: auto;
+  padding: 4px 12px;
+  background: #0e639c;
+  color: #ffffff;
+  border: none;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.update-btn:hover {
+  background: #1177bb;
+}

@@ -1,6 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
+import { autoUpdater } from 'electron-updater'
 import { getVSCodeWindows, activateVSCodeWindow } from './vscode-detector'
 
 let mainWindow: BrowserWindow | null = null
@@ -74,12 +75,44 @@ function startRefreshLoop(): void {
   refreshInterval = setInterval(push, 3000)
 }
 
+// ── Auto Updater ──────────────────────────────────────────────────────
+
+function setupAutoUpdater(): void {
+  if (is.dev) return
+
+  autoUpdater.autoDownload = false
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow?.webContents.send('update-available', info.version)
+  })
+
+  autoUpdater.on('download-progress', (progress) => {
+    mainWindow?.webContents.send('update-download-progress', progress.percent)
+  })
+
+  autoUpdater.on('update-downloaded', () => {
+    mainWindow?.webContents.send('update-downloaded')
+  })
+
+  autoUpdater.on('error', () => {
+    // Silently ignore update errors
+  })
+
+  ipcMain.handle('download-update', () => autoUpdater.downloadUpdate())
+  ipcMain.handle('install-update', () => autoUpdater.quitAndInstall())
+
+  // Check 3s after launch, then every 4 hours
+  setTimeout(() => autoUpdater.checkForUpdates(), 3000)
+  setInterval(() => autoUpdater.checkForUpdates(), 4 * 60 * 60 * 1000)
+}
+
 // ── App Lifecycle ──────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
   setupIPC()
   createWindow()
   startRefreshLoop()
+  setupAutoUpdater()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
